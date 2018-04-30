@@ -1,0 +1,40 @@
+<!DOCYTPE html>
+
+<head>
+	<script src="./lib/jquery.min.js"></script>
+</head>
+
+<body>
+
+	<button id="save_btn">save</button>
+	<br/>
+	<canvas id="canvas" width=300 height=300></canvas>
+
+	<script>
+		function postCanvas(canvas)
+		{
+			let imageType = "image/jpeg";
+			const base64 = canvas.toDataURL(imageType);
+			const url = "http://localhost:3000";
+			const data = { 
+				data : base64,
+				filename: "yay.jpg"
+			};
+
+			$.post(url+"/api/saveimage", data, (res) => {
+				console.log(res);
+			})			
+		}
+
+		const canvas = document.getElementById("canvas");
+		const context = canvas.getContext("2d");
+		context.fillStyle = "#ff0000";
+		context.fillRect(0, 0, 150, 150);
+		context.fillRect(150, 150, 150, 150);
+
+		$("#save_btn").click(() => {
+			postCanvas(canvas);
+		});
+	</script>
+
+</body>

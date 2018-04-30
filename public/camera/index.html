@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="./js/lib/dat.gui.min.js"></script>
+	<script src="./js/lib/utils.js"></script>
+	<script src="./js/lib/webgl-utils.js"></script>
+	<script src="./js/lib/clmtrackr.js"></script>
+	<script src="./models/model_pca_20_svm.js"></script>
+	<script src="./js/face_deformer.js"></script>
+
+	<script src="./js/lib/jquery.min.js"></script>
+	<script src="./js/lib/three.min.js"></script>
+	<script src="./js/lib/OrbitControls.js"></script>
+	<script src="./js/SaveCanvas.js"></script>
+	<script src="samplepoints.js"></script>
+	<script src="./js/face.js"></script>
+	<script src="./js/main.js"></script>
+	<style>
+
+		#container{
+			position: relative;
+			width: 640px;
+			height: 480px;
+			margin-bottom: 40px; 
+		}
+
+			#videoel{
+				position: absolute;
+				display: block;
+				top: 10px;
+				left: 10px;
+			}
+
+			#webgla{
+				position: absolute;
+				display: block;
+				top: 10px;
+				left: 10px;
+			}
+
+		#canvasArea{
+			position: relative;
+			font-size: 6px;
+		}
+
+			#mergeCvs{
+			}
+				#videoCvs{
+				}
+
+				#resultCvs{
+					position: absolute;
+					top: 0;
+					left: 0;
+				}
+
+		#webglArea{
+			position: relative;		
+		}
+			#webgl {
+				position: relative;
+				top: 0;
+				left: 0;
+/*				width: 1024px;
+				height: 576px;
+*/			}
+
+		#numbers {
+			z-index: 10;
+		}
+		#numbers input {
+			height: 20px;
+			width: 100px;
+			margin: 10px;
+		}
+	</style>
+</head>
+<body>
+	<div id="content">
+		<div>
+			<input class="btn" type="button" value="Camera On" id="cameraOn_btn"></input>
+			<input class="btn" type="button" value="wait, loading video" disabled="disabled" id="start_btn"></input>
+		</div>
+
+		<div id="container">
+			video<br/>
+			<video id="videoel" preload="auto" playsinline autoplay></video>
+<!-- 			<canvas id="webgla"></canvas>-->
+		</div>
+
+		<div id="canvasArea">
+			<span><canvas id="videoCvs"></canvas></span>
+			<span><canvas id="resultCvs"></canvas></span>
+			<div id="positionArray"></div>
+		</div>
+
+		<div id="webglArea">
+			<button id="overWire_btn">wireframe</button>
+			<button id="exportJpg_btn">Export JPG</button>
+			<div id="webgl"></div>
+		</div>
+	</div>
+
+	<div id="numbers">
+		<input id="ok_btn" type="button" value="OK"/><br/>
+	</div>
+</body>
+</html>

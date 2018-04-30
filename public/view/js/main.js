@@ -1,0 +1,58 @@
+let displayId = 0;
+
+
+function getImage(id)//---unused
+{
+	$.get("/api/getimage", {id:id}, (res) => {
+		$("body").append('<img src="data:image/jpeg;base64,'+res+'" />');
+	})			
+}
+
+
+function setEvents()
+{
+	document.addEventListener("keydown", function(e) {
+		if (e.keyCode == 13) {
+			if (!document.webkitFullscreenElement) {
+				document.documentElement.webkitRequestFullscreen();
+			}
+			else {
+				if (document.webKitExitFullscreen) {
+					document.webKitExitFullscreen(); 
+				}
+			}
+		}
+	}, false);
+}
+
+$(()=>{
+
+	displayId = window.location.search.substring(1);
+
+	setEvents();
+
+	var socket = io();
+
+	socket.on('connect', function()
+	{
+		console.log("connected");
+
+		socket.emit('join');
+
+		$("#getList_btn").click(function(){
+			socket.emit("getDisplayImageList");
+		});
+
+		socket.on("updateDisplayImageList", (msg)=>{
+			//console.log(msg);
+			const imgSrc = msg[displayId].imgSrc;
+			$("#mainImage").html("<img src='"+imgSrc+"' />");
+		})
+
+		socket.on('client console', function(msg){
+			console.log(msg);
+		});
+
+	});
+
+})

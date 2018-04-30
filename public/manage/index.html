@@ -1,0 +1,71 @@
+<!DOCYTPE html>
+<html>
+<head>
+	<script src="./lib/jquery.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="./js/DragNDrop.js"></script>
+	<script src="./js/main.js"></script>
+	<style>
+		#displayId {
+			display: inline-block;
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 15px;
+			height: 20px;
+			z-index: 100;
+			background: black;
+			color: white;
+		}
+
+		#displayList{
+			position: fixed;
+			top: 0;
+			width: 100%;
+			background: white;
+			z-index: 10;
+		}
+
+		#displayList > span{
+			margin: 5px;
+		}
+
+		#stockList{
+			margin-top: 240px;
+		}
+		#stockList > span{
+			margin: 5px;		
+		}
+
+		.imgLists span{
+			cursor: move;
+			position: relative;
+			display: inline-block;
+			width: 192;
+			height: 108;
+			border: grey 1px solid;
+			margin: 0px;
+		}
+
+		.imgLists span img{
+			width: 100%;
+			height: 100%;
+		}
+
+		.imgLists span p{
+			position: absolute;
+			bottom: 0px;
+			right: 2px;
+			margin: 0px;
+			font-size: 12px;
+			color: white;
+		}
+
+	</style>
+</head>
+
+<body>
+	<ul id="displayList" class="imgLists"></ul>
+	<ul id="stockList" class="imgLists"></ul>
+</body>
+</html>
