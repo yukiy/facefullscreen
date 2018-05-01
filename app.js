@@ -21,7 +21,7 @@ const io = require("socket.io").listen(server);
 const publicDirPath = __dirname+"/public/";
 
 const fList = require("./viewModule.js");
-
+const ip = require("./LocalIPModule.js");
 
 
 
@@ -34,7 +34,7 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({limit:'50mb', extended: true}));
 
 app.use(express.static("public"));
 
@@ -47,10 +47,16 @@ app.post("/api/saveimage", (req, res) => {
 	//---temp[1]: actual data
 	const data = temp[1];
 	const img = base64.decode(data);
-	const savedir = __dirname+"/public/_uploads/"
-	fs.writeFile(savedir+filename, img, (err) => {
+	const savedir = __dirname+"/public";
+	const imgSrc = "/_uploads/"+filename;
+	fs.writeFile(savedir+imgSrc, img, (err) => {
 		console.log(err);
-		res.send(req.body.filename+"書き込み完了");
+		res.send(req.body.filename+" 書き込み完了");
+
+		fList.updateDisplayImageFilename("new", imgSrc);
+		io.sockets.emit("updateDisplayImageList", fList.getDisplayImageList());
+		io.sockets.emit("client console", "update");
+
 	});
 });
 
@@ -71,27 +77,11 @@ app.get("/api/getDisplayNum", (req, res) => {
 
 app.get("/api/getStockImageList", (req, res, next) => {
 	console.log("getStockImageList");
-	const dirPath = fList.getImageDirPath();
-	fs.readdir(publicDirPath+dirPath, (err, files)=>{
-		if(err) throw err;
-
-		files = files.reverse();
-
-		const fileList = files.filter( (filename) => {
-			filename = publicDirPath+dirPath+filename;
-			return fs.statSync(filename) && /.*\.jpg$/.test(filename);
-		});
-
-		for(let i=0; i<fileList.length; i++){
-			fileList[i] = dirPath + fileList[i];
-		}
-
-		res.json({ 
-			"imageDirPath": dirPath,
-			"files": fileList
-		});
-	})
+	fList.getStockImageList(publicDirPath, (list)=>{
+		res.json(list);
+	});
 });
+
 
 app.get("/api/getimage", (req, res, next) => {
 	console.log("getimage");
@@ -101,28 +91,40 @@ app.get("/api/getimage", (req, res, next) => {
 	res.send(b64);
 })
 
-
+app.get("/api/getIp", (req, res) => {
+	console.log("localIP");
+	const addr = ip.getIp;
+	res.json(addr);
+})
 
 
 io.sockets.on('connection', (socket) => {
-
 	let id = socket.id;
 	socket.emit('client console', id);
 
 	socket.on('join', () => {
 		console.log("join");
-		io.sockets.emit('client console',  id + ' joined');
+		io.sockets.emit('client console', id + ' joined');
 	});
-
 
 	socket.on("getDisplayImageList", () => {
 		socket.emit('updateDisplayImageList', fList.getDisplayImageList());
-	})
+	});
 
 	socket.on("updateDisplayImage", (data) => {
 		fList.updateDisplayImageFilename(data.id, data.imgSrc);
 		io.sockets.emit("updateDisplayImageList", fList.getDisplayImageList());
-		io.sockets.emit("client console", "update");
+		//io.sockets.emit("client console", "update");
+	});
+
+	socket.on("updateStockImage", () => {
+		fList.getStockImageList(publicDirPath, (list)=>{
+			res.json(list);
+		});
+	});
+
+	socket.on("allRefresh", () => {
+		io.sockets.emit('refresh');
 	});
 
 	/*---ref
@@ -139,5 +141,4 @@ io.sockets.on('connection', (socket) => {
 	});
 	*/
 })
-
 

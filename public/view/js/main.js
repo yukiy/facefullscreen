@@ -11,6 +11,10 @@ function getImage(id)//---unused
 
 function setEvents()
 {
+	$("#getList_btn").click(function(){
+		socket.emit("getDisplayImageList");
+	});
+
 	document.addEventListener("keydown", function(e) {
 		if (e.keyCode == 13) {
 			if (!document.webkitFullscreenElement) {
@@ -25,6 +29,7 @@ function setEvents()
 	}, false);
 }
 
+
 $(()=>{
 
 	displayId = window.location.search.substring(1);
@@ -35,24 +40,23 @@ $(()=>{
 
 	socket.on('connect', function()
 	{
-		console.log("connected");
-
+		//console.log("connected");
 		socket.emit('join');
+		socket.emit("getDisplayImageList");
+	});
 
-		$("#getList_btn").click(function(){
-			socket.emit("getDisplayImageList");
-		});
+	socket.on("updateDisplayImageList", (msg)=>{
+		//console.log(msg);
+		const imgSrc = msg[displayId].imgSrc;
+		$("#mainImage").html("<img src='"+imgSrc+"' />");
+	})
 
-		socket.on("updateDisplayImageList", (msg)=>{
-			//console.log(msg);
-			const imgSrc = msg[displayId].imgSrc;
-			$("#mainImage").html("<img src='"+imgSrc+"' />");
-		})
+	socket.on('client console', function(msg){
+		console.log(msg);
+	});
 
-		socket.on('client console', function(msg){
-			console.log(msg);
-		});
-
+	socket.on("refresh", ()=>{
+		location.reload();
 	});
 
 })

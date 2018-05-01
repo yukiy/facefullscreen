@@ -1,11 +1,49 @@
+function postCanvas(canvasId, filename, isWebGl=false)
+{
+
+	let canvas;
+	let imageType = "image/png";
+	let ext = "png";
+	let arr = filename.toLowerCase().split(".");
+	if(arr[arr.length-1] == "jpg" || arr[arr.length-1] == "jpeg"){
+		imageType = "image/jpeg";
+	}
+	else{
+		imageType = "image/png";
+	}
+
+	if(isWebGl){
+		canvas = document.getElementById(canvasId).children[0];
+		canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
+	}else{
+		canvas = document.getElementById(canvasId);		
+	}
+
+	const base64 = canvas.toDataURL(imageType);
+
+	const data = { 
+		data : base64,
+		filename: filename
+	};
+
+	$.post("/api/saveimage", data, (res) => {
+		console.log(res);
+	})			
+}
+
 function saveCanvas (canvasId, filename, isWebGl = false)
 {
 	const blob = getBlob (canvasId, filename, isWebGl);
 	downloadBlob(blob, filename);
 }
 
-
 function getBlob (canvasId, filename, isWebGl = false)
+{
+	const base64 = getBase64(canvasId, filename, isWebGl);
+	const blob = Base64toBlob(base64);
+}
+
+function getBase64 (canvasId, filename, isWebGl = false)
 {
 	let canvas;
 	let imageType = "image/png";
@@ -17,7 +55,6 @@ function getBlob (canvasId, filename, isWebGl = false)
 	else{
 		imageType = "image/png";
 	}
-	console.log(canvas);
 	if(isWebGl){
 		canvas = document.getElementById(canvasId).children[0];
 		canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
@@ -25,7 +62,7 @@ function getBlob (canvasId, filename, isWebGl = false)
 		canvas = document.getElementById(canvasId);		
 	}
 	const base64 = canvas.toDataURL(imageType);
-	const blob = Base64toBlob(base64);
+	return base64;
 }
 
 function Base64toBlob (base64)
@@ -60,4 +97,6 @@ function downloadBlob (blob, fileName)
 	a.download = fileName;
 	a.dispatchEvent(event);
 }
+
+
 

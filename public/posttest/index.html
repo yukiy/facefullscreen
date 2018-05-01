@@ -15,13 +15,12 @@
 		{
 			let imageType = "image/jpeg";
 			const base64 = canvas.toDataURL(imageType);
-			const url = "http://localhost:3000";
 			const data = { 
 				data : base64,
 				filename: "yay.jpg"
 			};
 
-			$.post(url+"/api/saveimage", data, (res) => {
+			$.post("/api/saveimage", data, (res) => {
 				console.log(res);
 			})			
 		}

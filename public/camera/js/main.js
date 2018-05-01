@@ -17,13 +17,16 @@ let faceGlPos;
 
 let debugDot;
 
+// const width = 640;
+// const height = 480;
+
 const vidW = 640;
 const vidH = 480;
 let dotMeshes = [];
 let isLandscape;
 let isTrackOn = false;
 let isWebcamOn = false;
-let isOverWireframe = true;
+let isOverWireframe = false;
 let isShowDots = true;
 let isShowDebugDot = false;
 
@@ -531,31 +534,46 @@ function initThreeObjects ()
 
 function setupCanvas ()
 {
+	const winW = window.innerWidth;
+	const winH = window.innerHeight;
+
 	//---webcam from rtc 
 	vid = document.getElementById('videoel');
-	vid.width = width;
-	vid.height = height;
+	vid.width = vidW;
+	vid.height = vidH;
 
 	//---canvas for rendered video
 	videoCvs = document.getElementById("videoCvs");
-	videoCvs.width = width;
-	videoCvs.height = height;
+	videoCvs.width = vidW;//---実際のpixelサイズ
+	videoCvs.height = vidH;
 	videoCtx = videoCvs.getContext("2d");
+	$("#videoCvs").width(winW);//---ブラウザ表示のサイズ
+	$("#videoCvs").height(winH);
+
 
 	//----canvas to draw points
 	resultCvs = document.getElementById("resultCvs");
-	resultCvs.width = width;
-	resultCvs.height = height;
+	resultCvs.width = vidW;//---実際のpixelサイズ
+	resultCvs.height = vidH;
 	resultCtx = resultCvs.getContext("2d");
+	$("#resultCvs").width(winW);//---ブラウザ表示のサイズ
+	$("#resultCvs").height(winH);
+
 
 	//---canvas for threejs
-	const webglCvsW = 1024;
-	const webglCvsH = 576;
+	// const webglCvsW = 1024;
+	// const webglCvsH = 576;
+	const webglCvsW = "100%";
+	const webglCvsH = "100%";
 	$("#webgl").width(webglCvsW);
 	$("#webgl").height(webglCvsH);
-	webglCvs = document.getElementById('webgl');
+	webglCvs = document.getElementById("webgl");
 	webglCvs.width = webglCvsW;
 	webglCvs.height = webglCvsH;
+
+
+
+
 }
 
 
@@ -581,24 +599,66 @@ function setupEvents ()
 	});
 
 	$("#exportJpg_btn").click( () => {
-		saveCanvas("webgl", "test.jpg", true);
+		//saveCanvas("webgl", "test.jpg", true);
+
+		const n = new Date();
+		const filename = n.getFullYear() + ("0"+(n.getMonth()+1)).slice(-2) + ("0"+n.getDate()).slice(-2)
+					   +"_" 
+					   + ("0"+n.getHours()).slice(-2) + ("0"+n.getMinutes()).slice(-2) + ("0"+n.getSeconds()).slice(-2)
+					   + ".jpg";
+		postCanvas("webgl", filename, true);
 	});
-}
 
 
-function init ()
-{
-	setupCanvas();
+	$("#showCameraCanvas_btn").click( ()=> {
+		$("#canvasArea").toggle();
+	})
 
-	scene = new THREE.Scene();
-	//---THREE.OrthographicCamera ( left, right, top, bottom, near, far )
-	//camera = new THREE.OrthographicCamera(-1, 1, 1*domH/domW, -1*domH/domW, 0.01, 2);//---縦横比を考慮,この場合vertexの座標も要考慮する
-	//camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0.01, 2);//---それぞれ縦幅を1,横幅を1としたとき
-	camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0.01, 2);//---それぞれ縦幅を1,横幅を1としたとき
-    camera.position.set(0, 0, 2);
+	$("#showResult_btn").click( ()=> {
+		$("#webglArea").toggle();
+	})
 
-	createRenderer("webgl");
-	setupEvents();
+	$(window).keypress((e)=>{
+		console.log(e.keyCode);
+		if(e.keyCode == 100){
+			$("#debugCtrl").toggle();
+		}
+
+		if(e.keyCode == 119){
+			(isOverWireframe) ? isOverWireframe = false : isOverWireframe = true;
+		}
+	})
+
+
+
+	$(window).resize(()=>{
+		//---全画面
+		const width = window.innerWidth;
+		const height = window.innerHeight;
+
+		$("#videoCvs").width(width);
+		$("#videoCvs").height(height);
+
+		$("#resultCvs").width(width);
+		$("#resultCvs").height(height);
+
+		renderer.setPixelRatio(window.devicePixelRatio);
+		renderer.setSize(width, height);
+
+	});
+
+	document.addEventListener("keydown", function(e) {
+		if (e.keyCode == 13) {
+			if (!document.webkitFullscreenElement) {
+				document.documentElement.webkitRequestFullscreen();
+			}
+			else {
+				if (document.webKitExitFullscreen) {
+					document.webKitExitFullscreen(); 
+				}
+			}
+		}
+	}, false);
 }
 
 
@@ -653,7 +713,7 @@ function animate ()
 		faceClm.update();
 		drawPointsOnCanvas(resultCtx, faceClm.positions, true);
 
-		if(faceClm.positions.length > 0) {
+		if(faceClm.positions && faceClm.positions.length > 0) {
 			faceGlPos = getGlPositions(faceClm.positions);
 
 			updatePolygon(faceGlPos);
@@ -682,6 +742,24 @@ function animate ()
 	}
 
 	renderer.render( scene, camera );
+}
+
+
+function init ()
+{
+	setupCanvas();
+
+	scene = new THREE.Scene();
+	//---THREE.OrthographicCamera ( left, right, top, bottom, near, far )
+	//camera = new THREE.OrthographicCamera(-1, 1, 1*domH/domW, -1*domH/domW, 0.01, 2);//---縦横比を考慮,この場合vertexの座標も要考慮する
+	//camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0.01, 2);//---それぞれ縦幅を1,横幅を1としたとき
+	camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0.01, 2);//---それぞれ縦幅を1,横幅を1としたとき
+    camera.position.set(0, 0, 2);
+
+	createRenderer("webgl");
+
+	$("#webglArea").toggle();//---作成してから非表示にする
+	setupEvents();
 }
 
 

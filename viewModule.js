@@ -1,13 +1,13 @@
 const displayNum = 7;
 let displayImageList = [];
-let nextUpdateId = 0;
-const imageDirPath = "_uploads/";
+const imageDirPath = "/_uploads/";
+const fs = require("fs");
 
 
 for(let i=0; i<displayNum; i++){
 	displayImageList.push(
 	{ 
-		imgSrc : "../"+imageDirPath + "sample"+i+".jpg" 
+		imgSrc : imageDirPath + "0" + i + "_sample.jpg" 
 	});
 }
 
@@ -22,13 +22,37 @@ module.exports = {
 
 	//getDisplayImageFilename : (id) => { return displayImageList[id].filename; },
 
-	updateDisplayImageFilename : (id=undefined, imgSrc) => {
-		if(id==undefined){
-			displayImageList[nextUpdateId].imgSrc = imgSrc;
-			nextUpdateId++;
+	updateDisplayImageFilename : (id, imgSrc) => {
+		if(id=="new"){
+			displayImageList.unshift({imgSrc:imgSrc});
+			displayImageList.pop();
 		}else{
 			displayImageList[id].imgSrc = imgSrc;
 		}
 	},
 
+	getStockImageList : (publicDirPath, callback) => {
+		const dirPath = imageDirPath;
+		fs.readdir(publicDirPath+dirPath, (err, files)=>{
+
+			if(err) throw err;
+
+			files = files.reverse();
+
+			const fileList = files.filter( (filename) => {
+				filename = publicDirPath+dirPath+filename;
+				return fs.statSync(filename) && /.*\.jpg$/.test(filename);
+			});
+
+			for(let i=0; i<fileList.length; i++){
+				fileList[i] = dirPath + fileList[i];
+			}
+
+			callback({ 
+				"imageDirPath": dirPath,
+				"files": fileList
+			})
+		})
+	}
 }
+

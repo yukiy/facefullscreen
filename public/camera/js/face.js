@@ -1,6 +1,4 @@
 var webGLContext;
-const width = 640;
-const height = 480;
 
 let faceClm;
 
@@ -23,13 +21,13 @@ function gumSuccess ( stream ) {
 
 	vid.onloadedmetadata = function() {
 		//adjustVideoProportions();
-		faceClm.fd.init(webglCvs);
+		//faceClm.fd.init(webglCvs);
 		vid.play();
 	}
 
 	vid.onresize = function() {
 		//adjustVideoProportions();
-		faceClm.fd.init(webglCvs);
+		//faceClm.fd.init(webglCvs);
 		if (faceClm.trackingStarted) {
 			faceClm.ctrack.stop();
 			faceClm.ctrack.reset();
@@ -73,17 +71,16 @@ function setupWebcam (callback)
 	}
 
 
-
-
 	vid.addEventListener('canplay', ()=>{
 		var startbutton = document.getElementById('start_btn');
-		startbutton.value = "start";
+		startbutton.innerHTML = "start";
 		startbutton.disabled = null;
 		callback();
 		startbutton.addEventListener("click", () => {
 			isTrackOn = true;
 			faceClm.startVideo();
 			initThreeObjects();
+			startbutton.disabled = true;
 		})
 	}, false);
 }
@@ -236,7 +233,8 @@ class Clm
 			str += "["+ positions[i][0] +","+ positions[i][1] +"],";
 		}
 		str += "]";
-		$("#positionArray").html(str);
+		console.log(str);
+		//$("#positionArray").html(str);
 	}
 
 	exportToImg (cvs) {
