@@ -61,28 +61,51 @@ function setupWebcam (callback)
 	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 	window.URL = window.URL || window.webkitURL || window.msURL || window.mozURL;
 
-	// check for camerasupport
-	if (navigator.mediaDevices) {
-		navigator.mediaDevices.getUserMedia({video : true}).then(gumSuccess).catch(gumFail);
-	} else if (navigator.getUserMedia) {
-		navigator.getUserMedia({video : true}, gumSuccess, gumFail);
-	} else {
-		alert("Your browser does not seem to support getUserMedia, using a fallback video instead.");
-	}
 
 
-	vid.addEventListener('canplay', ()=>{
-		var startbutton = document.getElementById('start_btn');
-		startbutton.innerHTML = "start";
-		startbutton.disabled = null;
-		callback();
-		startbutton.addEventListener("click", () => {
-			isTrackOn = true;
-			faceClm.startVideo();
-			initThreeObjects();
-			startbutton.disabled = true;
-		})
-	}, false);
+	navigator.mediaDevices.enumerateDevices().then( (devices)=>
+	{
+		let deviceId;
+
+		for(let i=0; i<devices.length; i++){
+			const label = devices[i].label;
+			const kind = devices[i].kind;
+			if(kind=="videoinput" && label.indexOf("C922") > -1 ){
+				deviceId = devices[i].deviceId;
+			}
+		}
+
+        const constraints = {
+            video: {deviceId: deviceId ? {exact: deviceId} : undefined}
+        };
+
+		// check for camerasupport
+		// if (navigator.mediaDevices) {
+		// 	navigator.mediaDevices.getUserMedia({video : true}).then(gumSuccess).catch(gumFail);
+		// } else if (navigator.getUserMedia) {
+		// 	navigator.getUserMedia({video : true}, gumSuccess, gumFail);
+		if (navigator.mediaDevices) {
+			navigator.mediaDevices.getUserMedia(constraints).then(gumSuccess).catch(gumFail);
+		} else if (navigator.getUserMedia) {
+			navigator.getUserMedia(constraints, gumSuccess, gumFail);
+		} else {
+			alert("Your browser does not seem to support getUserMedia, using a fallback video instead.");
+		}
+
+
+		vid.addEventListener('canplay', ()=>{
+			var startbutton = document.getElementById('start_btn');
+			startbutton.innerHTML = "start";
+			startbutton.disabled = null;
+			callback();
+			startbutton.addEventListener("click", () => {
+				isTrackOn = true;
+				faceClm.startVideo();
+				initThreeObjects();
+				startbutton.disabled = true;
+			})
+		}, false);
+	});
 }
 
 

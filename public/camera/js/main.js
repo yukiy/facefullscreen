@@ -164,7 +164,7 @@ function calcExtend (id, x, y)
 	if (id==rightBottomIds[0]|| id==rightBottomIds[1] || id==rightBottomIds[2]) return rightBottomPos;
 
 
-	if ( id < 15 || (70 < id && id < 110)){
+	if ( id < 15 || (70 < id && id < 110) ){
 	//if ( id > 70 && id < 95 ){
 		let direction;
 
@@ -179,10 +179,13 @@ function calcExtend (id, x, y)
 			direction = "TB";
 		}
 
+		//todo 目のところ
+		//if(id == 95 || id == 109) return {x:x, y:y};
+
 		let newX = x;
 		let newY = y;
 		if(direction == "LR"){
-			newX = (x > 0) ? maxNum : minNum ;
+			newX = (x > 0) ? maxNum : minNum;
 			newY = y/x * newX;
 		}else{
 			newX = x/y * newY;
@@ -300,7 +303,8 @@ function createDot (size, x, y, z)
 function createDots (glPositions)
 {
 	for (let i=0; i<glPositions.length; i++){
-		const dot = createSprite(i, 0.02, glPositions[i].x, glPositions[i].y, glPositions[i].z);
+		const size = 0.015;
+		const dot = createSprite(i, size, glPositions[i].x, glPositions[i].y, glPositions[i].z);
 		//const dot = createDot(0.1, glPositions[i].x, glPositions[i].y, glPositions[i].z);
 		dotMeshes.push( dot );
 	}
@@ -604,9 +608,12 @@ function setupEvents ()
 		const n = new Date();
 		const filename = n.getFullYear() + ("0"+(n.getMonth()+1)).slice(-2) + ("0"+n.getDate()).slice(-2)
 					   +"_" 
-					   + ("0"+n.getHours()).slice(-2) + ("0"+n.getMinutes()).slice(-2) + ("0"+n.getSeconds()).slice(-2)
-					   + ".jpg";
-		postCanvas("webgl", filename, true);
+					   + ("0"+n.getHours()).slice(-2) + ("0"+n.getMinutes()).slice(-2) + ("0"+n.getSeconds()).slice(-2);
+	
+		//postCanvas("webgl", filename+".jpg", true);
+
+		postVideo("webgl", filename+".mp4");
+
 	});
 
 

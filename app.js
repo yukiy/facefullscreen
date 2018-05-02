@@ -56,9 +56,31 @@ app.post("/api/saveimage", (req, res) => {
 		fList.updateDisplayImageFilename("new", imgSrc);
 		io.sockets.emit("updateDisplayImageList", fList.getDisplayImageList());
 		io.sockets.emit("client console", "update");
-
 	});
 });
+
+app.post("/api/savevideo", (req, res) => {
+	console.log("savevideo");
+	const filename = req.body.filename;
+	const temp = req.body.data.split(",");
+	//---temp[0]: string like "data:image/jpeg;base64"
+	//---temp[1]: actual data
+	const data = temp[1];
+	const video = base64.decode(data);
+	const savedir = __dirname+"/public";
+	const videoSrc = "/_videos/"+filename;
+	fs.writeFile(savedir+videoSrc, video, (err) => {
+		console.log(err);
+		const ff = require("./videoModule.js");
+		ff.exportReverseVideo(savedir+videoSrc, ()=>{
+			res.send(req.body.filename+" 書き込み完了");
+			fList.updateDisplayVideoFilename("new", videoSrc);
+			io.sockets.emit("updateDisplayVideoList", fList.getDisplayVideoList());
+		});
+	});
+});
+
+
 
 app.get("/api/getDisplayNum", (req, res) => {
 	console.log("getDisplayNum");
@@ -77,7 +99,7 @@ app.get("/api/getDisplayNum", (req, res) => {
 
 app.get("/api/getStockImageList", (req, res, next) => {
 	console.log("getStockImageList");
-	fList.getStockImageList(publicDirPath, (list)=>{
+	fList.getStockFileList(publicDirPath, (list)=>{
 		res.json(list);
 	});
 });
@@ -111,14 +133,24 @@ io.sockets.on('connection', (socket) => {
 		socket.emit('updateDisplayImageList', fList.getDisplayImageList());
 	});
 
+	socket.on("getDisplayVideoList", () => {
+		socket.emit('updateDisplayVideoList', fList.getDisplayVideoList());
+	});
+
 	socket.on("updateDisplayImage", (data) => {
 		fList.updateDisplayImageFilename(data.id, data.imgSrc);
 		io.sockets.emit("updateDisplayImageList", fList.getDisplayImageList());
 		//io.sockets.emit("client console", "update");
 	});
 
+	socket.on("updateDisplayVideo", (data) => {
+		fList.updateDisplayVideoFilename(data.id, data.videoSrc);
+		io.sockets.emit("updateDisplayVideoList", fList.getDisplayVideoList());
+		//io.sockets.emit("client console", "update");
+	});
+
 	socket.on("updateStockImage", () => {
-		fList.getStockImageList(publicDirPath, (list)=>{
+		fList.getStockFileList(publicDirPath, (list)=>{
 			res.json(list);
 		});
 	});

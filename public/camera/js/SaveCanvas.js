@@ -1,3 +1,4 @@
+/* JPG */
 function postCanvas(canvasId, filename, isWebGl=false)
 {
 
@@ -28,7 +29,7 @@ function postCanvas(canvasId, filename, isWebGl=false)
 
 	$.post("/api/saveimage", data, (res) => {
 		console.log(res);
-	})			
+	})	
 }
 
 function saveCanvas (canvasId, filename, isWebGl = false)
@@ -98,5 +99,61 @@ function downloadBlob (blob, fileName)
 	a.dispatchEvent(event);
 }
 
+
+/* MP4 */
+function postVideo (webglId, filename)
+{
+
+	const chunkDuration = 1000;
+	const videoDuration = 1000;
+	let chunks = [];
+
+	const canvas = document.getElementById(webglId).children[0];
+	const canvasStream = canvas.captureStream();
+	const recorder = new MediaRecorder(canvasStream);
+
+	recorder.ondataavailable = function (e) 
+	{
+		chunks.push(e.data);
+		if(chunks.length == Math.ceil(videoDuration/chunkDuration)) {
+			//----(videoDuration/chunkDuration)秒後にストップ
+			recorder.stop();
+		}
+	};
+
+	recorder.onstop = function(e)
+	{
+		const blob = new Blob(chunks, { type: "video/webm" });
+		const url = window.URL.createObjectURL(blob);		
+		onRecordEnd(blob, filename);
+	};
+
+	recorder.start(chunkDuration); //---chunkDurationミリ秒ごとにchunkを保存
+}
+
+//---Cameraでのレコーディングが終わるとこれが呼ばれる
+function onRecordEnd(blob, filename)
+{
+	if(!(window.File && window.FileReader && window.FileList && window.Blob)){
+		console.log("File API not fully supported.");
+		return;
+	}
+	const reader = new FileReader();
+	reader.readAsDataURL(blob);
+	reader.onloadend = () =>
+	{
+		const base64 = reader.result;
+		//const base64 = canvas.toDataURL(imageType);
+		const data = {
+			filename : filename,
+			data : base64
+		}
+
+		$.post("/api/savevideo", data, (res) => {
+			console.log(res);
+		})	
+
+	}
+}
 
 
