@@ -22,6 +22,8 @@ const publicDirPath = __dirname+"/public/";
 
 const fList = require("./viewModule.js");
 const ip = require("./LocalIPModule.js");
+const ff = require("./videoModule.js");
+
 
 
 
@@ -52,15 +54,14 @@ app.post("/api/saveimage", (req, res) => {
 	fs.writeFile(savedir+imgSrc, img, (err) => {
 		console.log(err);
 		res.send(req.body.filename+" 書き込み完了");
-
 		fList.updateDisplayImageFilename("new", imgSrc);
-		io.sockets.emit("updateDisplayImageList", fList.getDisplayImageList());
-		io.sockets.emit("client console", "update");
+		io.sockets.emit("updateDisplayImageList", fList.getDisplayImageList());		
 	});
 });
 
-app.post("/api/savevideo", (req, res) => {
-	console.log("savevideo");
+
+function saveVideo (req, res)
+{
 	const filename = req.body.filename;
 	const temp = req.body.data.split(",");
 	//---temp[0]: string like "data:image/jpeg;base64"
@@ -71,13 +72,36 @@ app.post("/api/savevideo", (req, res) => {
 	const videoSrc = "/_videos/"+filename;
 	fs.writeFile(savedir+videoSrc, video, (err) => {
 		console.log(err);
-		const ff = require("./videoModule.js");
 		ff.exportReverseVideo(savedir+videoSrc, ()=>{
 			res.send(req.body.filename+" 書き込み完了");
 			fList.updateDisplayVideoFilename("new", videoSrc);
 			io.sockets.emit("updateDisplayVideoList", fList.getDisplayVideoList());
 		});
 	});
+}
+
+
+app.post("/api/savevideo", (req, res) => {
+	console.log("savevideo");
+	saveVideo(req, res);
+	/*
+	const filename = req.body.filename;
+	const temp = req.body.data.split(",");
+	//---temp[0]: string like "data:image/jpeg;base64"
+	//---temp[1]: actual data
+	const data = temp[1];
+	const video = base64.decode(data);
+	const savedir = __dirname+"/public";
+	const videoSrc = "/_videos/"+filename;
+	fs.writeFile(savedir+videoSrc, video, (err) => {
+		console.log(err);
+		ff.exportReverseVideo(savedir+videoSrc, ()=>{
+			res.send(req.body.filename+" 書き込み完了");
+			fList.updateDisplayVideoFilename("new", videoSrc);
+			io.sockets.emit("updateDisplayVideoList", fList.getDisplayVideoList());
+		});
+	});
+	*/
 });
 
 

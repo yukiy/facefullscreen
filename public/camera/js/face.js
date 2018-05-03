@@ -92,20 +92,19 @@ function setupWebcam (callback)
 			alert("Your browser does not seem to support getUserMedia, using a fallback video instead.");
 		}
 
-
 		vid.addEventListener('canplay', ()=>{
 			var startbutton = document.getElementById('start_btn');
 			startbutton.innerHTML = "start";
 			startbutton.disabled = null;
 			callback();
-			startbutton.addEventListener("click", () => {
-				isTrackOn = true;
-				faceClm.startVideo();
-				initThreeObjects();
-				startbutton.disabled = true;
-			})
 		}, false);
 	});
+}
+
+function startTracking (){
+	isTrackOn = true;
+	faceClm.startVideo();
+	initThreeObjects();
 }
 
 

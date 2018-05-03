@@ -103,7 +103,7 @@ function downloadBlob (blob, fileName)
 /* MP4 */
 function postVideo (webglId, filename)
 {
-
+	console.log("post");
 	const chunkDuration = 1000;
 	const videoDuration = 1000;
 	let chunks = [];
@@ -124,7 +124,7 @@ function postVideo (webglId, filename)
 	recorder.onstop = function(e)
 	{
 		const blob = new Blob(chunks, { type: "video/webm" });
-		const url = window.URL.createObjectURL(blob);		
+		//const url = window.URL.createObjectURL(blob);		
 		onRecordEnd(blob, filename);
 	};
 

@@ -1,6 +1,5 @@
 "use strict";
 
-//todo 顔をよらせる
 //todo まゆげのあたり調整
 
 var camera, scene, renderer;
@@ -29,6 +28,7 @@ let isWebcamOn = false;
 let isOverWireframe = false;
 let isShowDots = true;
 let isShowDebugDot = false;
+const faceScale = 0.3;
 
 
 function updateDotPosition (id, position)
@@ -79,6 +79,15 @@ function centerize (glPositions)
 }
 
 
+function scaling (glPositions, scale)
+{
+	for (let i=0; i<glPositions.length; i++){
+		glPositions[i].x *= scale;
+		glPositions[i].y *= scale;
+	}
+	return glPositions;
+}
+
 function flip (glPositions)
 {
 	for (let i=0; i<glPositions.length; i++){
@@ -112,6 +121,14 @@ function getMiddlePoint (p1, p2)
 			 y: (p1.y+p2.y)/2 }
 }
 
+
+function getLengthBetween (glPositions, id1, id2)
+{
+	//23, 62
+	const a = glPositions[id1];
+	const b = glPositions[id2];
+	return Math.sqrt( (a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y) );
+}
 
 function calcExtend (id, x, y)
 {
@@ -419,7 +436,16 @@ function updatePolygon (glPositions)
 {
 	if(faceClm.positions.length > 0) {
 		updateVertexUvs (glPositions);//---カメラ画像のUVマップを更新
+		console.log();
+
 		faceGlPos = centerize(glPositions);
+
+
+		//---鼻筋の長さ
+		const noseLength = getLengthBetween(glPositions, 23, 62);
+		const scale = faceScale / noseLength;
+		faceGlPos = scaling(glPositions, scale);
+
 		faceGlPos = extend(faceGlPos);
 		//setInputNumbers(faceGlPos);
 		updateVertices(faceGlPos);
@@ -575,34 +601,29 @@ function setupCanvas ()
 	webglCvs.width = webglCvsW;
 	webglCvs.height = webglCvsH;
 
-
-
-
 }
 
 
 function setupEvents ()
 {
 	$("#cameraOn_btn").click( () => {
+		$("#cameraOn_btn").attr("disabled", true);
 		setupWebcam ( () => {
 			isWebcamOn = true;
 		});
 	});
 
-	$("#ok_btn").click( () => {
-		const glPositions = getGlPositionsFromInput();
-		updateVertices(glPositions);
-	});
-
 	$("#overWire_btn").click( () => {
 		if(isOverWireframe) {
 			isOverWireframe = false;
+			$("#resultCvs").hide();
 		}else {
 			isOverWireframe = true;
+			$("#resultCvs").show();
 		}
 	});
 
-	$("#exportJpg_btn").click( () => {
+	$("#exportJpg_btn").on("click touchstart", () => {
 		//saveCanvas("webgl", "test.jpg", true);
 
 		const n = new Date();
@@ -610,8 +631,7 @@ function setupEvents ()
 					   +"_" 
 					   + ("0"+n.getHours()).slice(-2) + ("0"+n.getMinutes()).slice(-2) + ("0"+n.getSeconds()).slice(-2);
 	
-		//postCanvas("webgl", filename+".jpg", true);
-
+		postCanvas("webgl", filename+".jpg", true);
 		postVideo("webgl", filename+".mp4");
 
 	});
@@ -625,14 +645,29 @@ function setupEvents ()
 		$("#webglArea").toggle();
 	})
 
+	$("#start_btn").click( () => {
+		$("#start_btn").attr("disabled", true);
+		startTracking();
+	})
+
 	$(window).keypress((e)=>{
 		console.log(e.keyCode);
-		if(e.keyCode == 100){
+		if(e.keyCode == 100){//---enter
 			$("#debugCtrl").toggle();
 		}
 
-		if(e.keyCode == 119){
+		if(e.keyCode == 119){//---w
 			(isOverWireframe) ? isOverWireframe = false : isOverWireframe = true;
+		}
+
+		if(e.keyCode == 32){//---space
+			$("#cameraOn_btn").attr("disabled", true);
+			setupWebcam ( () => {
+				isWebcamOn = true;
+				$("#start_btn").attr("disabled", true);
+				startTracking();
+				$("#webglArea").toggle();
+			});
 		}
 	})
 
