@@ -75,7 +75,9 @@ function saveVideo (req, res)
 		ff.exportReverseVideo(savedir+videoSrc, ()=>{
 			res.send(req.body.filename+" 書き込み完了");
 			fList.updateDisplayVideoFilename("new", videoSrc);
-			io.sockets.emit("updateDisplayVideoList", fList.getDisplayVideoList());
+			setTimeout(()=>{
+				io.sockets.emit("updateDisplayVideoList", fList.getDisplayVideoList());
+			}, 500);
 		});
 	});
 }

@@ -30,6 +30,8 @@ let isShowDots = true;
 let isShowDebugDot = false;
 const faceScale = 0.3;
 
+let isPosting = false;
+
 
 function updateDotPosition (id, position)
 {
@@ -436,7 +438,6 @@ function updatePolygon (glPositions)
 {
 	if(faceClm.positions.length > 0) {
 		updateVertexUvs (glPositions);//---カメラ画像のUVマップを更新
-		console.log();
 
 		faceGlPos = centerize(glPositions);
 
@@ -535,15 +536,28 @@ function updateTexture ()
 
 
 function post (){
+	console.log("post");
+//	isPosting = true;
+	$("#whitescreen").show();
+	$("#whitescreen").fadeOut(2000);
+
 	//saveCanvas("webgl", "test.jpg", true);
 	const n = new Date();
 	const filename = n.getFullYear() + ("0"+(n.getMonth()+1)).slice(-2) + ("0"+n.getDate()).slice(-2)
 				   +"_" 
 				   + ("0"+n.getHours()).slice(-2) + ("0"+n.getMinutes()).slice(-2) + ("0"+n.getSeconds()).slice(-2);
 
-	postCanvas("webgl", filename+".jpg", true);
-	postVideo("webgl", filename+".mp4");
+	//postCanvas("webgl", filename+".jpg", true);
+	//postVideo("webgl", filename+".mp4");
+	postImageAndVideo("webgl", filename);
+
+
+	// setTimeout( ()=>{
+	// 	isPosting = false;
+	// 	$("#whitescreen").hide();
+	// }, 2000);
 }
+
 
 function initThreeObjects () 
 {
@@ -627,10 +641,10 @@ function setupEvents ()
 	$("#overWire_btn").click( () => {
 		if(isOverWireframe) {
 			isOverWireframe = false;
-			$("#resultCvs").hide();
+			//$("#resultCvs").hide();
 		}else {
 			isOverWireframe = true;
-			$("#resultCvs").show();
+			//$("#resultCvs").show();
 		}
 	});
 
@@ -654,7 +668,7 @@ function setupEvents ()
 
 	let isTouchHold = false;
 	$(window).keypress((e)=>{
-		console.log(e.keyCode);
+		//console.log(e.keyCode);
 		if(e.keyCode == 100){//---enter
 			$("#debugCtrl").toggle();
 		}
@@ -674,8 +688,7 @@ function setupEvents ()
 		}
 
 		if(e.keyCode == 99){
-			if(!isTouchHold && isWebcamOn){
-				console.log("hi");
+			if(!isTouchHold && isWebcamOn && !isPosting){
 				post();
 				isTouchHold = true;
 			}
@@ -720,6 +733,7 @@ function setupEvents ()
 }
 
 
+//---デバッグ用ワイヤフレーム
 function drawPointsOnCanvas (context, positions, isWireframe=false)
 {
 	if(!positions || positions==undefined) return;
@@ -752,10 +766,52 @@ function drawPointsOnCanvas (context, positions, isWireframe=false)
 	}
 }
 
+//---UI用ワイヤフレーム
+function drawPointsOnCanvas2 (context, positions, isWireframe=false)
+{
+	if(!positions || positions==undefined) return;
+
+	context.clearRect(0, 0, vid.width, vid.height);
+	let x, y;
+	for(let i=0; i<positions.length; i++){
+		if( 71 <= i && i <= 118) continue
+
+		x = positions[i][0];
+		y = positions[i][1];
+		context.fillStyle = "#ffffff";
+		context.shadowColor = "#ffffff";
+		context.shadowBlur = 10;
+		//context.fillRect(x, y, 3, 3);
+		context.beginPath();
+		context.arc(x, y, 2, 0, Math.PI*2, false);
+		context.fill();
+	}
+
+	if(isWireframe){
+		context.strokeStyle = "rgb(255, 255, 255)";
+		for(let i=0; i<faceFaceArray.length; i++){
+			const x1 = positions[ faceFaceArray[i][0] ] [0];
+			const y1 = positions[ faceFaceArray[i][0] ] [1];
+			const x2 = positions[ faceFaceArray[i][1] ] [0];
+			const y2 = positions[ faceFaceArray[i][1] ] [1];
+			const x3 = positions[ faceFaceArray[i][2] ] [0];
+			const y3 = positions[ faceFaceArray[i][2] ] [1];
+
+			context.beginPath();
+			context.moveTo(x1, y1);
+			context.lineTo(x2, y2);
+			context.lineTo(x3, y3);
+			context.lineTo(x1, y1);
+			context.stroke();
+		}
+	}
+}
+
 
 function animate ()
 {
 	requestAnimationFrame( animate );
+
 	if(isWebcamOn){
 		videoCtx.drawImage(vid, 0, 0, videoCvs.width, videoCvs.height);
 		/*
@@ -768,14 +824,19 @@ function animate ()
 
 	if(isTrackOn){
 		faceClm.update();
-		drawPointsOnCanvas(resultCtx, faceClm.positions, true);
+		//drawPointsOnCanvas(resultCtx, faceClm.positions, true);
+		drawPointsOnCanvas2(resultCtx, faceClm.positions, false);
 
 		//---scoreが低いときは全顔面にしない
 		if(faceClm.ctrack.getScore() > 0.5){
 			$("#webglArea").show();
+			$("#instr2").show();
+			$("#instr1").hide();
 		}
 		else{
 			$("#webglArea").hide();
+			$("#instr1").show();
+			$("#instr2").hide();
 		}
 
 		if(faceClm.positions && faceClm.positions.length > 0) {
@@ -824,8 +885,10 @@ function init ()
 
 	createRenderer("webgl");
 
-	$("#webglArea").toggle();//---作成してから非表示にする
+	$("#webglArea").hide();//---作成してから非表示にする
+	$("#debugCtrl").hide();
 	setupEvents();
+
 }
 
 

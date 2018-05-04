@@ -104,7 +104,7 @@ function downloadBlob (blob, fileName)
 function postVideo (webglId, filename)
 {
 	console.log("post");
-	const chunkDuration = 250;
+	const chunkDuration = 2000;
 	const videoDuration = 2000;
 	let chunks = [];
 
@@ -156,4 +156,64 @@ function onRecordEnd(blob, filename)
 	}
 }
 
+
+function postImageAndVideo (webglId, filename) 
+{
+	const canvas = document.getElementById(webglId).children[0];
+	let imageType = "image/jpeg";
+	const imageBase64 = canvas.toDataURL(imageType);
+	const imageData = { 
+		filename: filename+".jpg",
+		data : imageBase64
+	};
+
+	const chunkDuration = 1000;
+	const videoDuration = 2000;
+	let chunks = [];
+
+	const canvasStream = canvas.captureStream();
+	const recorder = new MediaRecorder(canvasStream);
+
+	recorder.ondataavailable = function (e) 
+	{
+		chunks.push(e.data);
+		if(chunks.length == Math.ceil(videoDuration/chunkDuration)) {
+			//----(videoDuration/chunkDuration)秒後にストップ
+			recorder.stop();
+		}
+	};
+
+	recorder.onstop = function(e)
+	{
+		const blob = new Blob(chunks, { type: "video/webm" });
+		const reader = new FileReader();
+		reader.readAsDataURL(blob);
+		reader.onloadend = () =>
+		{
+			const videoBase64 = reader.result;
+			//const base64 = canvas.toDataURL(imageType);
+			const videoData = {
+				filename : filename+".mp4",
+				data : videoBase64
+			}
+
+			$.post("/api/saveimage", imageData, (res) => {
+			console.log(res);
+				$.post("/api/savevideo", videoData, (res) => {
+					console.log(res);
+				})
+			})	
+		}
+
+	};
+
+	recorder.onstart = function (e)
+	{
+		console.log("start");
+	}
+
+	console.log(recorder);
+
+	recorder.start(chunkDuration); //---chunkDurationミリ秒ごとにchunkを保存
+}
 
