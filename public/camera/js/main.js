@@ -534,6 +534,17 @@ function updateTexture ()
 }
 
 
+function post (){
+	//saveCanvas("webgl", "test.jpg", true);
+	const n = new Date();
+	const filename = n.getFullYear() + ("0"+(n.getMonth()+1)).slice(-2) + ("0"+n.getDate()).slice(-2)
+				   +"_" 
+				   + ("0"+n.getHours()).slice(-2) + ("0"+n.getMinutes()).slice(-2) + ("0"+n.getSeconds()).slice(-2);
+
+	postCanvas("webgl", filename+".jpg", true);
+	postVideo("webgl", filename+".mp4");
+}
+
 function initThreeObjects () 
 {
 	let initGlPositions = [];
@@ -624,18 +635,8 @@ function setupEvents ()
 	});
 
 	$("#exportJpg_btn").on("click touchstart", () => {
-		//saveCanvas("webgl", "test.jpg", true);
-
-		const n = new Date();
-		const filename = n.getFullYear() + ("0"+(n.getMonth()+1)).slice(-2) + ("0"+n.getDate()).slice(-2)
-					   +"_" 
-					   + ("0"+n.getHours()).slice(-2) + ("0"+n.getMinutes()).slice(-2) + ("0"+n.getSeconds()).slice(-2);
-	
-		postCanvas("webgl", filename+".jpg", true);
-		postVideo("webgl", filename+".mp4");
-
+		post();
 	});
-
 
 	$("#showCameraCanvas_btn").click( ()=> {
 		$("#canvasArea").toggle();
@@ -650,6 +651,8 @@ function setupEvents ()
 		startTracking();
 	})
 
+
+	let isTouchHold = false;
 	$(window).keypress((e)=>{
 		console.log(e.keyCode);
 		if(e.keyCode == 100){//---enter
@@ -669,8 +672,21 @@ function setupEvents ()
 				$("#webglArea").toggle();
 			});
 		}
+
+		if(e.keyCode == 99){
+			if(!isTouchHold && isWebcamOn){
+				console.log("hi");
+				post();
+				isTouchHold = true;
+			}
+		}
 	})
 
+	$(window).keyup((e)=>{
+		if(e.keyCode == 67){
+			isTouchHold = false;
+		}
+	})
 
 
 	$(window).resize(()=>{
@@ -751,11 +767,19 @@ function animate ()
 	}
 
 	if(isTrackOn){
-		faceClm.a = 0;
 		faceClm.update();
 		drawPointsOnCanvas(resultCtx, faceClm.positions, true);
 
+		//---scoreが低いときは全顔面にしない
+		if(faceClm.ctrack.getScore() > 0.5){
+			$("#webglArea").show();
+		}
+		else{
+			$("#webglArea").hide();
+		}
+
 		if(faceClm.positions && faceClm.positions.length > 0) {
+
 			faceGlPos = getGlPositions(faceClm.positions);
 
 			updatePolygon(faceGlPos);

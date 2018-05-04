@@ -115,10 +115,10 @@ class Clm
 {
 	constructor ()
 	{
-		this.a = 0;
-
-		this.ctrack = new clm.tracker();
-		this.fd = new faceDeformer();
+		this.ctrack = new clm.tracker(
+			//{scoreThreshold : 0.1}
+		);
+		//this.fd = new faceDeformer();
 
 		this.trackingStarted = false;
 		this.originalPositions = null;
@@ -141,6 +141,7 @@ class Clm
 	}
 
 	update () {
+
 		this.originalPositions = this.ctrack.getCurrentPosition();
 		if(this.originalPositions[62]){
 			this.positions = this.originalPositions;
@@ -220,20 +221,6 @@ class Clm
 	// 	}
 	// }
 
-	draw () {
-		/*
-		const pn = this.ctrack.getConvergence();
-		if (pn < 0.4) {
-			this.exportToText(this.positions);
-			this.exportToImg(this.resultCvs);
-			this.exportToImg(this.videoCvs);
-			this.fd.load(vid, this.positions, pModel);
-			this.drawMask;
-		} else {
-			this.drawGrid;
-		}
-		*/
-	}
 
 	drawGrid (canvas) {
 		canvas.getContext.clearRect(0, 0, canvas.width, canvas.height);
@@ -242,11 +229,11 @@ class Clm
 		}
 	}
 
-	drawMask () {
-		if (positions) {
-			this.fd.draw(this.positions);
-		}
-	}
+	// drawMask () {
+	// 	if (positions) {
+	// 		this.fd.draw(this.positions);
+	// 	}
+	// }
 
 	exportToText (positions) {
 		let str = "";

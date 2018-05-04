@@ -8,17 +8,33 @@
 	<script src="./js/lib/clmtrackr.js"></script>
 	<script src="./models/model_pca_20_svm.js"></script>
 	<script src="./js/face_deformer.js"></script>
-
 	<script src="./js/lib/jquery.min.js"></script>
 	<script src="./js/lib/three.min.js"></script>
 	<script src="./js/lib/OrbitControls.js"></script>
-	<script src="./js/lib/whammy.js"></script>
 	<script src="./js/SaveCanvas.js"></script>
 	<script src="samplepoints.js"></script>
 	<script src="./js/face.js"></script>
 	<script src="./js/main.js"></script>
 
 	<style>
+		@font-face {
+			font-family: 'kokoro';
+			src: url('./font/kokoro/kokoro.otf') format('opentype');
+		}
+		@font-face {
+			font-family: 'nitalago';
+			src: url('./font/NitalagoRuikaKyohkan-05M.TTF') format('truetype');
+		}
+		@font-face {
+			font-family: 'shincomic';
+			src: url('./font/shincomic/f910-shin-comic-2.04.otf') format('opentype');
+		}
+
+		@font-face {
+			font-family: 'ebgaramond';
+			src: url('./font/EBGaramond12-Regular.ttf') format('truetype');
+		}
+
 
 		#body{
 			overflow: hidden;
@@ -107,6 +123,63 @@
 			height: 50px;
 			text-align: center;
 		}
+
+		#jp_instr{
+			font-size: 40px;
+/*			font-family: 'nitalago';*/
+			font-family: 'kokoro';
+/*			font-family: 'shincomic';*/
+			margin: 10px;
+		}
+		#en_instr{
+			font-size: 25px;
+			font-family: 'ebgaramond';
+			margin: 10px;
+		}
+		#here {
+			position: absolute;
+			width: 100%;
+			bottom:150px;
+			text-align: center;
+			color: white;
+			text-shadow: 0px 0px 20px rgba(255,255,255,1);
+		}
+		#here div {
+			position: absolute;
+			left: 50%;
+			width: 50px;
+			height: 50px;
+			margin-left: -25px;
+			border-left: 5px solid #fff;
+			border-bottom: 5px solid #fff;
+			-webkit-transform: rotate(-45deg);
+			transform: rotate(-45deg);
+			-webkit-animation: sdb 2s infinite;
+			animation: sdb 2s infinite;
+			box-sizing: border-box;
+		}
+		@-webkit-keyframes sdb {
+			0% {
+				-webkit-transform: rotate(-45deg) translate(0, 0);
+			}
+			20% {
+				-webkit-transform: rotate(-45deg) translate(-30px, 30px);
+			}
+			40% {
+				-webkit-transform: rotate(-45deg) translate(0, 0);
+			}
+		}
+		@keyframes sdb {
+			0% {
+				transform: rotate(-45deg) translate(0, 0);
+			}
+			20% {
+				transform: rotate(-45deg) translate(-30px, 30px);
+			}
+			40% {
+				transform: rotate(-45deg) translate(0, 0);
+			}
+		}
 	</style>
 </head>
 
@@ -135,7 +208,11 @@
 		<div id="webglArea">
 			<div id="webgl"></div>
 		</div>
-
+	
+		<div id="here">
+			<p id="jp_instr">下のボタンをタッチで顔面を保存。</p>
+			<p id="en_instr">Touch the button to save your face.</p>
+			<div></div>
 	</div>
 
 </body>

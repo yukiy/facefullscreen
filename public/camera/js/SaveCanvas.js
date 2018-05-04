@@ -104,8 +104,8 @@ function downloadBlob (blob, fileName)
 function postVideo (webglId, filename)
 {
 	console.log("post");
-	const chunkDuration = 1000;
-	const videoDuration = 1000;
+	const chunkDuration = 250;
+	const videoDuration = 2000;
 	let chunks = [];
 
 	const canvas = document.getElementById(webglId).children[0];
