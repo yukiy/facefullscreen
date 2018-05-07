@@ -79,6 +79,8 @@ function setupWebcam (callback)
             video: {deviceId: deviceId ? {exact: deviceId} : undefined}
         };
 
+        //const constraints = { video : true};
+
 		// check for camerasupport
 		// if (navigator.mediaDevices) {
 		// 	navigator.mediaDevices.getUserMedia({video : true}).then(gumSuccess).catch(gumFail);

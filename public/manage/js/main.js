@@ -2,6 +2,8 @@ let socket;
 let currentDragId = null;
 let displayNum = 7;
 let serverAddr;
+let imageDirPath;
+let videoDirPath;
 
 
 /*
@@ -43,10 +45,13 @@ function addDnDListener (id)
 	dnd.setTarget(
 		"display"+id, 
 		(obj) => {
-			const imgSrc = obj.newHtmlText.split("<img src=\"")[1].split(".jpg")[0] + ".jpg";
-			const data = { imgSrc : imgSrc, id: id };
+			const imgSrc = obj.newHtmlText.split('<img src="/'+imageDirPath)[1].split(".jpg")[0] + ".jpg";
+			const videoSrc = obj.newHtmlText.split('<img src="/'+imageDirPath)[1].split(".jpg")[0] + ".mp4";
+
+			const data = { imgSrc: imgSrc, videoSrc: videoSrc, id: id };
 
 			socket.emit("updateDisplayImage", data);
+			socket.emit("updateDisplayVideo", data);
 
 			/*---ドラッグ先とドラッグ元の画像を交換する
 			//---TODO 実装する場合は、app.js側のimgsrcを交換する。以下はapp.jsを使わない場合に動くもの。
@@ -69,7 +74,7 @@ function updateDisplayImages (data)
 	for(let i=0; i<displayNum; i++){
 		$("#displayList").append(
 			"<span><p id='displayId'>"+i+"</p>"
-			+"<span id='display"+i+"'><img src='"+data[i].imgSrc+"' /></span>"
+			+"<span id='display"+i+"'><img src='/"+data.dirPath+data.list[i].imgSrc+"' /></span>"
 			+"</span>");
 
 		addDnDListener(i);
@@ -81,7 +86,8 @@ function updateStockImages (list)
 {
 	for(let i=0; i<list.files.length; i++){
 		const filename = list.files[i];
-		const dom = "<span id='stock"+i+"' draggable='true'><img src='"+filename+"'/><p>"+list.files[i]+"</p></span>";
+		//const dom = "<span id='stock"+i+"' draggable='true'><img src='/"+filename+"'/><p>"+list.files[i]+"</p></span>";
+		const dom = "<span id='stock"+i+"' draggable='true'><img src='/"+imageDirPath+filename+"'/><p>"+list.files[i]+"</p></span>";
 		$("#stockList").append(dom);
 
 		const dnd = new DragNDrop();
@@ -91,18 +97,26 @@ function updateStockImages (list)
 
 function init()
 {
-	$.get("/api/getDisplayNum", (res) => {
-		displayNum = res;
+	$.get("/api/getPathList", (res) => {
 
-		socket.emit("getDisplayImageList"), (data)=>{
-			updateDisplayImages(data);
-		}
+		imageDirPath = res.imageDirPath;
+		videoDirPath = res.videoDirPath;
+
+		$.get("/api/getDisplayNum", (res) => {
+		
+			displayNum = res;
+
+			socket.emit("getDisplayImageList"), (data)=>{
+				updateDisplayImages(data);
+			}
+		})
+
+		$.getJSON("/api/getStockImageList", (res) => { //socket.emit("getStockImageList")でもよい
+			//console.log(res);
+			updateStockImages(res);
+		});
+
 	})
-
-	$.getJSON("/api/getStockImageList", (res) => { //socket.emit("getStockImageList")でもよい
-		//console.log(res);
-		updateStockImages(res);
-	});
 
 	setEvents();
 

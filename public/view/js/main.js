@@ -45,10 +45,11 @@ $(()=>{
 		socket.emit("getDisplayImageList");
 	});
 
-	socket.on("updateDisplayImageList", (msg)=>{
-		//console.log(msg);
-		const imgSrc = msg[displayId].imgSrc;
-		$("#mainImage").html("<img src='"+imgSrc+"' />");
+	socket.on("updateDisplayImageList", (data)=>{
+		//console.log(data);
+		const dirPath = data.dirPath;
+		const filename = data.list[displayId].imgSrc;
+		$("#mainImage").html("<img src='/"+dirPath+filename+"' />");
 	})
 
 	socket.on('client console', function(msg){

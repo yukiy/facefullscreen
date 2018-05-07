@@ -3,10 +3,6 @@ let displayId = 0;
 
 function setEvents()
 {
-	$("#getList_btn").click(function(){
-		socket.emit("getDisplayVideoList");
-	});
-
 	document.addEventListener("keydown", function(e) {
 		if (e.keyCode == 13) {
 			if (!document.webkitFullscreenElement) {
@@ -37,10 +33,11 @@ $(()=>{
 		socket.emit("getDisplayVideoList");
 	});
 
-	socket.on("updateDisplayVideoList", (msg)=>{
-		//console.log(msg);
-		const videoSrc = msg[displayId].videoSrc;
-		$("#mainImage").html("<video src='"+videoSrc+"_m.mp4' autoplay loop/>");
+	socket.on("updateDisplayVideoList", (data)=>{
+		console.log(data);
+		const dirPath = data.dirPath;
+		const videoSrc = data.list[displayId].videoSrc;
+		$("#mainImage").html("<video src='/"+dirPath+videoSrc+"_m.mp4' autoplay loop/>");
 	})
 
 	socket.on('client console', function(msg){

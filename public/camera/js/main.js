@@ -536,7 +536,6 @@ function updateTexture ()
 
 
 function post (){
-	console.log("post");
 //	isPosting = true;
 	$("#whitescreen").show();
 	$("#whitescreen").fadeOut(2000);
@@ -550,12 +549,6 @@ function post (){
 	//postCanvas("webgl", filename+".jpg", true);
 	//postVideo("webgl", filename+".mp4");
 	postImageAndVideo("webgl", filename);
-
-
-	// setTimeout( ()=>{
-	// 	isPosting = false;
-	// 	$("#whitescreen").hide();
-	// }, 2000);
 }
 
 
@@ -828,7 +821,7 @@ function animate ()
 		drawPointsOnCanvas2(resultCtx, faceClm.positions, false);
 
 		//---scoreが低いときは全顔面にしない
-		if(faceClm.ctrack.getScore() > 0.5){
+		if(faceClm.ctrack.getScore() > 0.4){
 			$("#webglArea").show();
 			$("#instr2").show();
 			$("#instr1").hide();

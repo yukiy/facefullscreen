@@ -1,10 +1,10 @@
 const displayNum = 7;
 
-let displayImageList = [];
-const imageDirPath = "/_uploads/";
+const imageDirPath = "_uploads/";
+const videoDirPath = "_videos/";
 
+let displayImageList = [];
 let displayVideoList = [];
-const videoDirPath = "/_videos/";
 
 const fs = require("fs");
 
@@ -12,16 +12,36 @@ const fs = require("fs");
 for(let i=0; i<displayNum; i++){
 	displayImageList.push(
 	{ 
-		imgSrc : imageDirPath + "0" + i + "_sample.jpg" 
+		//imgSrc : imageDirPath + "0" + i + "_sample.jpg" 
+		imgSrc :  "0" + i + "_sample.jpg" 
 	});
 }
 
 for(let i=0; i<displayNum; i++){
 	displayVideoList.push(
 	{ 
-		videoSrc : videoDirPath + "0" + i + "_sample.mp4" 
+		//videoSrc : videoDirPath + "0" + i + "_sample.mp4" 
+		videoSrc :  "0" + i + "_sample.mp4" 
 	});
 }
+
+
+// displayVideoList[0] = {videoSrc : videoDirPath + "20180505_132506.mp4"};
+// displayVideoList[1] = {videoSrc : videoDirPath + "20180505_134202.mp4"}; 
+// displayVideoList[2] = {videoSrc : videoDirPath + "20180505_175712.mp4"};
+// displayVideoList[3] = {videoSrc : videoDirPath + "20180505_131250.mp4"};
+// displayVideoList[4] = {videoSrc : videoDirPath + "20180505_110059.mp4"};
+// displayVideoList[5] = {videoSrc : videoDirPath + "20180505_174656.mp4"};
+// displayVideoList[3] = {videoSrc : videoDirPath + "20180505_173938.mp4"};
+displayVideoList[0] = {videoSrc : "20180505_132506.mp4"};
+displayVideoList[1] = {videoSrc : "20180505_134202.mp4"}; 
+displayVideoList[2] = {videoSrc : "20180505_175712.mp4"};
+displayVideoList[3] = {videoSrc : "20180505_131250.mp4"};
+displayVideoList[4] = {videoSrc : "20180505_110059.mp4"};
+displayVideoList[5] = {videoSrc : "20180505_174656.mp4"};
+displayVideoList[6] = {videoSrc : "20180505_173938.mp4"};
+
+
 
 
 module.exports = {
@@ -75,9 +95,9 @@ module.exports = {
 				}
 			});
 
-			for(let i=0; i<fileList.length; i++){
-				fileList[i] = dirPath + fileList[i];
-			}
+			// for(let i=0; i<fileList.length; i++){
+			// 	fileList[i] = dirPath + fileList[i];
+			// }
 
 			const obj = { 
 				"dirPath": dirPath,

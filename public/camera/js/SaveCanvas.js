@@ -104,7 +104,7 @@ function downloadBlob (blob, fileName)
 function postVideo (webglId, filename)
 {
 	console.log("post");
-	const chunkDuration = 2000;
+	const chunkDuration = 1000;
 	const videoDuration = 2000;
 	let chunks = [];
 
@@ -176,6 +176,9 @@ function postImageAndVideo (webglId, filename)
 
 	recorder.ondataavailable = function (e) 
 	{
+		console.log("hi");
+		console.log(chunks);
+
 		chunks.push(e.data);
 		if(chunks.length == Math.ceil(videoDuration/chunkDuration)) {
 			//----(videoDuration/chunkDuration)秒後にストップ
@@ -197,6 +200,7 @@ function postImageAndVideo (webglId, filename)
 				data : videoBase64
 			}
 
+			console.log("hi");
 			$.post("/api/saveimage", imageData, (res) => {
 			console.log(res);
 				$.post("/api/savevideo", videoData, (res) => {
@@ -211,8 +215,6 @@ function postImageAndVideo (webglId, filename)
 	{
 		console.log("start");
 	}
-
-	console.log(recorder);
 
 	recorder.start(chunkDuration); //---chunkDurationミリ秒ごとにchunkを保存
 }

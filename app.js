@@ -18,11 +18,15 @@ const server = app.listen( 3000, () => {
 
 const io = require("socket.io").listen(server);
 
-const publicDirPath = __dirname+"/public/";
 
 const fList = require("./viewModule.js");
 const ip = require("./LocalIPModule.js");
 const ff = require("./videoModule.js");
+
+
+const publicDirPath = __dirname+"/public/";
+const imageDirPath = "_uploads/";
+const videoDirPath = "_videos/";
 
 
 
@@ -41,22 +45,57 @@ app.use(bodyParser.urlencoded({limit:'50mb', extended: true}));
 app.use(express.static("public"));
 
 
-app.post("/api/saveimage", (req, res) => {
-	console.log("saveimage");
-	const filename = req.body.filename;
-	const temp = req.body.data.split(",");
+// app.post("/api/saveimage", (req, res) => {
+// 	console.log("saveimage");
+// 	const filename = req.body.filename;
+// 	const temp = req.body.data.split(",");
+// 	//---temp[0]: string like "data:image/jpeg;base64"
+// 	//---temp[1]: actual data
+// 	const data = temp[1];
+// 	const img = base64.decode(data);
+// 	const savedir = __dirname+"/public";
+// 	const imgSrc = "/_uploads/"+filename;
+// 	fs.writeFile(savedir+imgSrc, img, (err) => {
+// 		console.log(err);
+// 		res.send(req.body.filename+" 書き込み完了");
+// 		fList.updateDisplayImageFilename("new", imgSrc);
+// 		io.sockets.emit("updateDisplayImageList", fList.getDisplayImageList());		
+// 	});
+// });
+
+
+function saveImage (filename, alldata, callback)
+{
+	const temp = alldata.split(",");
 	//---temp[0]: string like "data:image/jpeg;base64"
 	//---temp[1]: actual data
 	const data = temp[1];
 	const img = base64.decode(data);
-	const savedir = __dirname+"/public";
-	const imgSrc = "/_uploads/"+filename;
-	fs.writeFile(savedir+imgSrc, img, (err) => {
+	// const savedir = __dirname+"/public";
+	// const imgSrc = "/_uploads/"+filename;
+
+	fs.writeFile(publicDirPath+imageDirPath+filename, img, (err) => {
 		console.log(err);
-		res.send(req.body.filename+" 書き込み完了");
-		fList.updateDisplayImageFilename("new", imgSrc);
-		io.sockets.emit("updateDisplayImageList", fList.getDisplayImageList());		
+		callback();
 	});
+}
+
+app.post("/api/saveimage", (req, res) => 
+{
+	console.log("saveimage");
+
+	const filename = req.body.filename;
+	const data = req.body.data;
+
+	saveImage(filename, data, ()=>{
+		res.send(filename+" 書き込み完了");
+		fList.updateDisplayImageFilename("new", filename);
+		//fList.updateDisplayImageFilename("new", imageDirPath+filename);
+		io.sockets.emit("updateDisplayImageList", {
+			dirPath : fList.getImageDirPath(), 
+			list : fList.getDisplayImageList()
+		});
+	})
 });
 
 
@@ -68,15 +107,23 @@ function saveVideo (req, res)
 	//---temp[1]: actual data
 	const data = temp[1];
 	const video = base64.decode(data);
-	const savedir = __dirname+"/public";
-	const videoSrc = "/_videos/"+filename;
-	fs.writeFile(savedir+videoSrc, video, (err) => {
+	// const savedir = __dirname+"/public";//
+	// const videoSrc = "/_videos/"+filename;//
+
+	fs.writeFile(publicDirPath+videoDirPath+filename, video, (err) => {
 		console.log(err);
-		ff.exportReverseVideo(savedir+videoSrc, ()=>{
-			res.send(req.body.filename+" 書き込み完了");
-			fList.updateDisplayVideoFilename("new", videoSrc);
+		ff.exportReverseVideo(publicDirPath+videoDirPath+filename, ()=>{
+ 		//ff.exportReverseVideo(savedir+videoSrc, ()=>{
+			res.send(filename+" 書き込み完了");
+			fList.updateDisplayVideoFilename("new", filename);
+			//fList.updateDisplayVideoFilename("new", videoDirPath+filename);
+ 			//fList.updateDisplayVideoFilename("new", videoSrc);
 			setTimeout(()=>{
-				io.sockets.emit("updateDisplayVideoList", fList.getDisplayVideoList());
+				io.sockets.emit('updateDisplayVideoList', {
+					dirPath : fList.getVideoDirPath(),
+					list : fList.getDisplayVideoList()
+				});
+
 			}, 500);
 		});
 	});
@@ -86,24 +133,6 @@ function saveVideo (req, res)
 app.post("/api/savevideo", (req, res) => {
 	console.log("savevideo");
 	saveVideo(req, res);
-	/*
-	const filename = req.body.filename;
-	const temp = req.body.data.split(",");
-	//---temp[0]: string like "data:image/jpeg;base64"
-	//---temp[1]: actual data
-	const data = temp[1];
-	const video = base64.decode(data);
-	const savedir = __dirname+"/public";
-	const videoSrc = "/_videos/"+filename;
-	fs.writeFile(savedir+videoSrc, video, (err) => {
-		console.log(err);
-		ff.exportReverseVideo(savedir+videoSrc, ()=>{
-			res.send(req.body.filename+" 書き込み完了");
-			fList.updateDisplayVideoFilename("new", videoSrc);
-			io.sockets.emit("updateDisplayVideoList", fList.getDisplayVideoList());
-		});
-	});
-	*/
 });
 
 
@@ -113,6 +142,16 @@ app.get("/api/getDisplayNum", (req, res) => {
 	res.type("text");
 	res.send(fList.getDisplayNum().toString());
 })
+
+app.get("/api/getPathList", (req, res) => {
+	console.log("getPathList");
+	res.json({
+		publicDirPath : publicDirPath,
+		imageDirPath : imageDirPath,
+		videoDirPath : videoDirPath
+	});
+})
+
 
 // app.get("/api/getDisplayImageList", (req, res) => {
 // 	console.log("getDisplayImageList");
@@ -125,8 +164,8 @@ app.get("/api/getDisplayNum", (req, res) => {
 
 app.get("/api/getStockImageList", (req, res, next) => {
 	console.log("getStockImageList");
-	fList.getStockFileList(publicDirPath, (list)=>{
-		res.json(list);
+	fList.getStockFileList(publicDirPath, (data)=>{
+		res.json(data);
 	});
 });
 
@@ -156,23 +195,36 @@ io.sockets.on('connection', (socket) => {
 	});
 
 	socket.on("getDisplayImageList", () => {
-		socket.emit('updateDisplayImageList', fList.getDisplayImageList());
+		socket.emit("updateDisplayImageList", {
+			dirPath : fList.getImageDirPath(), 
+			list : fList.getDisplayImageList()
+		});
 	});
 
 	socket.on("getDisplayVideoList", () => {
-		socket.emit('updateDisplayVideoList', fList.getDisplayVideoList());
+		socket.emit('updateDisplayVideoList', {
+			dirPath : fList.getVideoDirPath(),
+			list : fList.getDisplayVideoList()
+		});
 	});
 
 	socket.on("updateDisplayImage", (data) => {
 		fList.updateDisplayImageFilename(data.id, data.imgSrc);
-		io.sockets.emit("updateDisplayImageList", fList.getDisplayImageList());
+		io.sockets.emit("updateDisplayImageList", {
+			dirPath : fList.getImageDirPath(), 
+			list : fList.getDisplayImageList()
+		});
 		//io.sockets.emit("client console", "update");
 	});
 
 	socket.on("updateDisplayVideo", (data) => {
 		fList.updateDisplayVideoFilename(data.id, data.videoSrc);
-		io.sockets.emit("updateDisplayVideoList", fList.getDisplayVideoList());
+		//io.sockets.emit("updateDisplayVideoList", fList.getDisplayVideoList());
 		//io.sockets.emit("client console", "update");
+		io.sockets.emit("updateDisplayVideoList", {
+			dirPath : fList.getVideoDirPath(),
+			list : fList.getDisplayVideoList()
+		});
 	});
 
 	socket.on("updateStockImage", () => {
