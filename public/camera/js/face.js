@@ -1,118 +1,4 @@
-var webGLContext;
-
-let faceClm;
-
-
-function adjustVideoProportions() {
-	// resize overlay and video if proportions are not 4:3 keep same height, just change width
-	var proportion = vid.videoWidth/vid.videoHeight;
-	vid.width = Math.round(vid.height * proportion);
-	webglCvs.width = vid.width;
-	webGLContext.viewport(0,0,webGLContext.canvas.width,webGLContext.canvas.height);
-}
-
-function gumSuccess ( stream ) {
-	// add camera stream if getUserMedia succeeded
-	if ("srcObject" in vid) {
-		vid.srcObject = stream;
-	} else {
-		vid.src = (window.URL && window.URL.createObjectURL(stream));
-	}
-
-	vid.onloadedmetadata = function() {
-		//adjustVideoProportions();
-		//faceClm.fd.init(webglCvs);
-		vid.play();
-	}
-
-	vid.onresize = function() {
-		//adjustVideoProportions();
-		//faceClm.fd.init(webglCvs);
-		if (faceClm.trackingStarted) {
-			faceClm.ctrack.stop();
-			faceClm.ctrack.reset();
-			faceClm.ctrack.start(vid);
-		}
-	}
-}
-
-function gumFail () {
-	alert("There was some problem trying to fetch video from your webcam, using a fallback video instead.");
-}
-
-
-function setupWebcam (callback)
-{
-	faceClm = new Clm();
-
-/*
-	// check whether browser supports webGL
-	if (window.WebGLRenderingContext) {
-		webGLContext = webglCvs.getContext('webgl') || webglCvs.getContext('experimental-webgl');
-		if (!webGLContext || !webGLContext.getExtension('OES_texture_float')) {
-			webGLContext = null;
-		}
-	}
-	if (webGLContext == null) {
-		alert("Your browser does not seem to support WebGL. Unfortunately this face mask example depends on WebGL, so you'll have to try it in another browser. :(");
-	}
-*/
-
-	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-	window.URL = window.URL || window.webkitURL || window.msURL || window.mozURL;
-
-
-
-	navigator.mediaDevices.enumerateDevices().then( (devices)=>
-	{
-		let deviceId;
-
-		for(let i=0; i<devices.length; i++){
-			const label = devices[i].label;
-			const kind = devices[i].kind;
-			if(kind=="videoinput" && label.indexOf("C922") > -1 ){
-				deviceId = devices[i].deviceId;
-			}
-		}
-
-        const constraints = {
-            video: {deviceId: deviceId ? {exact: deviceId} : undefined}
-        };
-
-        //const constraints = { video : true};
-
-		// check for camerasupport
-		// if (navigator.mediaDevices) {
-		// 	navigator.mediaDevices.getUserMedia({video : true}).then(gumSuccess).catch(gumFail);
-		// } else if (navigator.getUserMedia) {
-		// 	navigator.getUserMedia({video : true}, gumSuccess, gumFail);
-		if (navigator.mediaDevices) {
-			navigator.mediaDevices.getUserMedia(constraints).then(gumSuccess).catch(gumFail);
-		} else if (navigator.getUserMedia) {
-			navigator.getUserMedia(constraints, gumSuccess, gumFail);
-		} else {
-			alert("Your browser does not seem to support getUserMedia, using a fallback video instead.");
-		}
-
-		vid.addEventListener('canplay', ()=>{
-			var startbutton = document.getElementById('start_btn');
-			startbutton.innerHTML = "start";
-			startbutton.disabled = null;
-			callback();
-		}, false);
-	});
-}
-
-function startTracking (){
-	isTrackOn = true;
-	faceClm.startVideo();
-	initThreeObjects();
-}
-
-
-
-/*********** Code for face tracking and face masking *********/
-
+/*********** Code for face tracking *********/
 class Clm
 {
 	constructor ()
@@ -120,7 +6,6 @@ class Clm
 		this.ctrack = new clm.tracker(
 			//{scoreThreshold : 0.1}
 		);
-		//this.fd = new faceDeformer();
 
 		this.trackingStarted = false;
 		this.originalPositions = null;
@@ -134,16 +19,17 @@ class Clm
 	}
 
 
-	startVideo () {
-		vid.play();
+	startVideo (videoEl) 
+	{
+		videoEl.play();
 		//this.ctrack.start(videoCvs);
-		this.ctrack.start(vid);
+		this.ctrack.start(videoEl);
 		this.trackingStarted = true;
 		//this.drawGridLoop();
 	}
 
-	update () {
-
+	update () 
+	{
 		this.originalPositions = this.ctrack.getCurrentPosition();
 		if(this.originalPositions[62]){
 			this.positions = this.originalPositions;
@@ -153,8 +39,9 @@ class Clm
 		//requestAnimFrame(this.update.bind(this));
 	}
 
-	addOffsetPositions () {
-		let x,y,scale;
+	addOffsetPositions () 
+	{
+		let x, y, scale;
 
 		//---add outside offset
 		scale = 1.2;
@@ -224,20 +111,16 @@ class Clm
 	// }
 
 
-	drawGrid (canvas) {
+	drawGrid (canvas) 
+	{
 		canvas.getContext.clearRect(0, 0, canvas.width, canvas.height);
 		if (this.positions) {
 			this.ctrack.draw(canvas);
 		}
 	}
 
-	// drawMask () {
-	// 	if (positions) {
-	// 		this.fd.draw(this.positions);
-	// 	}
-	// }
-
-	exportToText (positions) {
+	exportToText (positions) 
+	{
 		let str = "";
 		str += "[";
 		for(let i=0; i<positions.length; i++){
@@ -247,14 +130,6 @@ class Clm
 		console.log(str);
 		//$("#positionArray").html(str);
 	}
-
-	exportToImg (cvs) {
-		const photo = document.createElement("img");
-		document.getElementById("result").appendChild(photo);
-		const data = cvs.toDataURL('image/png');					
-		photo.setAttribute('src', data);				
-	}
-
 }
 
 

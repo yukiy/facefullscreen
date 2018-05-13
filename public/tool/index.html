@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script type="text/javascript" src="delaunay.js"></script>
+	</head>
+
+	<body>
+		<canvas id="canvas" width="1024" height="1024"></canvas>
+
+
+		<script type="text/javascript">
+
+		const bgCol = "#111111"
+		const canvas = document.getElementById("canvas");
+		const ctx = canvas.getContext("2d");
+		ctx.fillStyle = bgCol;
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+		let mouseX, mouseY;
+		let myVertices = [];
+		let myTriangles;
+
+		canvas.addEventListener("click", (e)=>{
+			const rect = e.target.getBoundingClientRect();
+			mouseX = e.clientX - rect.left;
+			mouseY = e.clientY - rect.top;
+
+			ctx.fillStyle = "#ff0000";
+			ctx.fillRect(mouseX, mouseY, 10, 10);
+
+			myVertices.push([mouseX, mouseY]);
+
+			if(myVertices.length > 3){
+				console.time("time");
+				//---キャンバスを一度クリア
+				ctx.fillStyle = bgCol;
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				//---各三角形の頂点座標(vertices)のIDが順番に入った配列
+				myTriangles = Delaunay.triangulate(myVertices);
+			
+				drawTriangles(myVertices, myTriangles, "#00ff00");
+
+				//myTriangleList = createTriangleList(myTriangles);
+				//drawTriangles(myVertices, myTriangleList, "#00ff00", true);
+			
+				console.timeEnd("time");
+			}
+		})
+
+		/*
+		triangles = [頂点座標のID1-1,　頂点座標のID1-2,　頂点座標のID1-3,　頂点座標のID2-1,　頂点座標のID2-2,　,,,,]
+		triangleList = [ [頂点座標のID1-1,頂点座標のID1-2,頂点座標のID1-3], [頂点座標のID2-1,頂点座標のID2-2,頂点座標のID2-3],[],,,,]
+		*/
+
+
+		function createRandomVertices (num)
+		{
+			const vertices = new Array(num);
+			let x, y;
+	
+			for(let i=0; i<vertices.length; i++) {
+				do {
+					x = Math.random() - 0.5;
+					y = Math.random() - 0.5;
+				} while(x * x + y * y > 0.25);
+
+				x = (x * 0.96875 + 0.5) * canvas.width;
+				y = (y * 0.96875 + 0.5) * canvas.height;
+
+				vertices[i] = [x, y];
+			}
+
+			return vertices;
+		}
+
+
+		function drawTriangles (vertices, triangles, lineColor="#000000", isList=false )
+		{
+			ctx.strokeStyle = lineColor;
+
+			if(!isList){
+				for(let i=0; i<triangles.length; i+=3) {
+					ctx.beginPath();
+					ctx.moveTo(vertices[triangles[i+0]][0], vertices[triangles[i+0]][1]);
+					ctx.lineTo(vertices[triangles[i+1]][0], vertices[triangles[i+1]][1]);
+					ctx.lineTo(vertices[triangles[i+2]][0], vertices[triangles[i+2]][1]);
+					ctx.closePath(); 
+					ctx.stroke();
+				}				
+			}
+			else{
+				for(let i=0; i<triangles.length; i++) {
+					ctx.beginPath();
+					ctx.moveTo(vertices[triangles[i][0]][0], vertices[triangles[i][0]][1]);
+					ctx.lineTo(vertices[triangles[i][1]][0], vertices[triangles[i][1]][1]);
+					ctx.lineTo(vertices[triangles[i][2]][0], vertices[triangles[i][2]][1]);
+					ctx.closePath(); 
+					ctx.stroke();
+				}
+			}
+		}
+
+		function createTriangleList (triangles)
+		{
+			const triangleList = [];
+			for(let i=0; i<triangles.length; i+=3){
+				triangleList.push( [ triangles[i], triangles[i+1], triangles[i+2] ] );
+			}
+			return triangleList;
+		}
+
+		function sample (){
+			const vertices = createRandomVertices(20);
+			const triangles = Delaunay.triangulate(vertices);
+			drawTriangles(triangles);			
+		}
+
+		</script>
+	</body>
+</html>

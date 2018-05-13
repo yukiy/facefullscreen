@@ -100,6 +100,16 @@ function downloadBlob (blob, fileName)
 }
 
 
+function exportToImg (cvs) 
+{
+	const photo = document.createElement("img");
+	document.getElementById("result").appendChild(photo);
+	const data = cvs.toDataURL('image/png');					
+	photo.setAttribute('src', data);				
+}
+
+
+
 /* MP4 */
 function postVideo (webglId, filename)
 {

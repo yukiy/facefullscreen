@@ -1,4 +1,5 @@
 .DS_Store
+public/_ignore/
 _Design/
 node_modules/
 *.mp4
